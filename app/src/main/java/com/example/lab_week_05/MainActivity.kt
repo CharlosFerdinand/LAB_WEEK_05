@@ -53,20 +53,29 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call<List<ImageData>>, t: Throwable) {
                 Log.e(MAIN_ACTIVITY, "Failed to get response", t)
             }
-            override fun onResponse(call: Call<List<ImageData>>, response:
-            Response<List<ImageData>>) {
-                if(response.isSuccessful){
+            override fun onResponse(call: Call<List<ImageData>>, response: Response<List<ImageData>>) {
+                if (response.isSuccessful) {
                     val image = response.body()
-                    val firstImage = image?.firstOrNull()?.imageUrl.orEmpty()
-                    if (firstImage.isNotBlank()) {
-                        imageLoader.loadImage(firstImage, imageResultView)
-                    } else {
-                        Log.d(MAIN_ACTIVITY, "Missing image URL")
+                    val firstImageData = image?.firstOrNull()
+
+                    if (firstImageData != null) {
+                        // load image as before
+                        if (firstImageData.imageUrl.isNotBlank()) {
+                            imageLoader.loadImage(firstImageData.imageUrl, imageResultView)
+                        } else {
+                            Log.d(MAIN_ACTIVITY, "Missing image URL")
+                        }
+
+                        // get breed name or Unknown
+                        val breedName = if (!firstImageData.breeds.isNullOrEmpty()) {
+                            firstImageData.breeds[0].name
+                        } else {
+                            "Unknown"
+                        }
+
+                        apiResponseView.text = getString(R.string.image_placeholder, breedName)
                     }
-                    apiResponseView.text = getString(R.string.image_placeholder,
-                        firstImage)
-                }
-                else{
+                } else {
                     Log.e(MAIN_ACTIVITY, "Failed to get response\n" +
                             response.errorBody()?.string().orEmpty()
                     )
